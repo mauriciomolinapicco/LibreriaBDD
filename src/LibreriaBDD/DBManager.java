@@ -23,39 +23,44 @@ public class DBManager {
 			System.exit(0);
 		}
 
-		//retorno la conexion
 		return c;
 	}
 
 
-	public static void cerrarBDD(Connection c){
+	public static void cerrarBDD(Connection c) {
 		try {
-			c.close()
+			c.close();
 		} catch (SQLException e){
 			e.printStackTrace();
-			throw new BDDException();
 		}
 	}
 
 
-	public static void transaccion(Connection c, String sentenciaSQL){
+	public static void transaccion(String sentenciaSQL) throws BDDException{
+		Connection c = DBManager.connect();
 		try {
 			Statement s = c.createStatement();
 			s.executeUpdate(sentenciaSQL);
 			c.commit();
 		} catch (SQLException e) {
-			c.rollback();
-			throw new BDDException();
+			try {
+				e.printStackTrace();
+				c.rollback();
+			} catch (SQLException e1) {
+				throw new BDDException();
+			}
 		} finally {
 			cerrarBDD(c);
 		}
     }
 
 
-	public static ResultSet consulta(Connection c, String sentenciaSQL) {
+	public static ResultSet consulta(String sentenciaSQL) throws BDDException {
+		Connection c = DBManager.connect();
+		ResultSet rs = null;
 		try {
 			Statement s = c.createStatement();
-			ResultSet rs = s.executeQuery(sentenciaSQL); 
+			rs = s.executeQuery(sentenciaSQL); 
 		} catch (SQLException e){
 			try {
 				c.rollback();
@@ -66,5 +71,6 @@ public class DBManager {
 		} finally {
 			cerrarBDD(c);
 		}
+		return rs;
 	}
 }
